@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Collaborative Paint - Plugin Architecture Demo</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <h1>Collaborative Paint</h1>
+    <p>Real-time collaborative drawing with plugin-oriented architecture</p>
+  </header>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <!-- Tools Section -->
+    <div class="toolbar-section">
+      <label>Tool:</label>
+      <button id="tool-pen" class="tool-btn active" data-tool="pen">Pen</button>
+      <button id="tool-eraser" class="tool-btn" data-tool="eraser">Eraser</button>
+    </div>
+
+    <!-- Color Section -->
+    <div class="toolbar-section">
+      <label>Color:</label>
+      <input type="color" id="color-picker" value="#000000">
+    </div>
+
+    <!-- Session Section -->
+    <div class="toolbar-section">
+      <button id="btn-create-session" class="primary">Create Session</button>
+      <button id="btn-join-session">Join Session</button>
+      <button id="btn-share-link" disabled>Share Link</button>
+    </div>
+
+    <!-- Actions Section -->
+    <div class="toolbar-section">
+      <button id="btn-clear">Clear Canvas</button>
+    </div>
+  </div>
+
+  <!-- Canvas -->
+  <div class="canvas-container">
+    <canvas id="canvas"></canvas>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div class="status-indicator">
+      <div class="status-dot" id="status-dot"></div>
+      <span id="status-text">Disconnected</span>
+    </div>
+    <div id="session-info">No active session</div>
+  </div>
+
+  <!-- Create Session Modal -->
+  <div id="modal-create-session" class="modal">
+    <div class="modal-content">
+      <h2>Create New Session</h2>
+      <p>You can optionally specify a custom session ID:</p>
+      <input type="text" id="input-create-session" placeholder="Leave empty for random ID">
+      <div class="modal-buttons">
+        <button id="btn-confirm-create" class="primary">Create</button>
+        <button id="btn-cancel-create">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Join Session Modal -->
+  <div id="modal-join-session" class="modal">
+    <div class="modal-content">
+      <h2>Join Existing Session</h2>
+      <p>Enter the session ID to join:</p>
+      <input type="text" id="input-join-session" placeholder="Session ID">
+      <div id="join-error"></div>
+      <div class="modal-buttons">
+        <button id="btn-confirm-join" class="primary">Join</button>
+        <button id="btn-cancel-join">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Share Link Modal -->
+  <div id="modal-share-link" class="modal">
+    <div class="modal-content">
+      <h2>Share Session Link</h2>
+      <p>Share this link with others to collaborate:</p>
+      <div class="session-link" id="share-link-text"></div>
+      <div class="modal-buttons">
+        <button id="btn-copy-link" class="primary">Copy Link</button>
+        <button id="btn-close-share">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Socket.io CDN -->
+  <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+
+  <!-- Main Application (compiled TypeScript) -->
+  <script type="module" src="/client/main.js"></script>
+</body>
+</html>
