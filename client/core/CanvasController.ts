@@ -148,13 +148,8 @@ class CanvasController {
       canvas: this.canvas
     };
 
+    // Tool handles incremental drawing in onMouseMove
     tool.onMouseMove(point, context);
-
-    // Redraw canvas with current stroke
-    this.redrawCanvas();
-    if (this.currentStroke) {
-      tool.render(this.ctx, this.currentStroke);
-    }
   }
 
   /**
