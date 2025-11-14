@@ -17,6 +17,7 @@ class CanvasController {
   private isDrawing: boolean;
   private strokes: Stroke[]; // All strokes in the session
   private currentStroke: Stroke | null;
+  private pendingRedraw: boolean;
 
   constructor(canvas: HTMLCanvasElement, toolRegistry: ToolRegistry) {
     this.canvas = canvas;
@@ -29,6 +30,7 @@ class CanvasController {
     this.isDrawing = false;
     this.strokes = [];
     this.currentStroke = null;
+    this.pendingRedraw = false;
 
     // Set up canvas
     this.setupCanvas();
@@ -197,14 +199,48 @@ class CanvasController {
     // Sort by server timestamp for correct ordering
     this.strokes.sort((a, b) => (a.serverTimestamp || 0) - (b.serverTimestamp || 0));
 
-    this.redrawCanvas();
+    // Schedule redraw (batched via requestAnimationFrame)
+    this.scheduleRedraw();
   }
 
   /**
    * Add multiple strokes (for sync)
    */
   addStrokes(strokes: Stroke[]): void {
-    strokes.forEach(stroke => this.addStroke(stroke));
+    let added = false;
+
+    for (const stroke of strokes) {
+      // Deduplicate strokes by ID
+      if (this.strokes.some(s => s.id === stroke.id)) {
+        continue;
+      }
+
+      this.strokes.push(stroke);
+      added = true;
+    }
+
+    if (added) {
+      // Sort by server timestamp for correct ordering
+      this.strokes.sort((a, b) => (a.serverTimestamp || 0) - (b.serverTimestamp || 0));
+
+      // Schedule single redraw for all strokes
+      this.scheduleRedraw();
+    }
+  }
+
+  /**
+   * Schedule a canvas redraw (batched via requestAnimationFrame)
+   */
+  private scheduleRedraw(): void {
+    if (this.pendingRedraw) {
+      return; // Already scheduled
+    }
+
+    this.pendingRedraw = true;
+    requestAnimationFrame(() => {
+      this.redrawCanvas();
+      this.pendingRedraw = false;
+    });
   }
 
   /**
