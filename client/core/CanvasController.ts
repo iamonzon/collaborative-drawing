@@ -16,6 +16,7 @@ class CanvasController {
   private toolRegistry: ToolRegistry;
   private isDrawing: boolean;
   private strokes: Stroke[]; // All strokes in the session
+  private strokeIds: Set<string>; // For O(1) deduplication
   private currentStroke: Stroke | null;
   private pendingRedraw: boolean;
 
@@ -29,6 +30,7 @@ class CanvasController {
     this.toolRegistry = toolRegistry;
     this.isDrawing = false;
     this.strokes = [];
+    this.strokeIds = new Set();
     this.currentStroke = null;
     this.pendingRedraw = false;
 
@@ -189,12 +191,13 @@ class CanvasController {
    * Add a stroke from remote user and render it
    */
   addStroke(stroke: Stroke): void {
-    // Deduplicate strokes by ID
-    if (this.strokes.some(s => s.id === stroke.id)) {
+    // Deduplicate strokes by ID (O(1) lookup)
+    if (this.strokeIds.has(stroke.id)) {
       return;
     }
 
     this.strokes.push(stroke);
+    this.strokeIds.add(stroke.id);
 
     // Sort by server timestamp for correct ordering
     this.strokes.sort((a, b) => (a.serverTimestamp || 0) - (b.serverTimestamp || 0));
@@ -210,12 +213,13 @@ class CanvasController {
     let added = false;
 
     for (const stroke of strokes) {
-      // Deduplicate strokes by ID
-      if (this.strokes.some(s => s.id === stroke.id)) {
+      // Deduplicate strokes by ID (O(1) lookup)
+      if (this.strokeIds.has(stroke.id)) {
         continue;
       }
 
       this.strokes.push(stroke);
+      this.strokeIds.add(stroke.id);
       added = true;
     }
 
@@ -270,6 +274,7 @@ class CanvasController {
    */
   clear(): void {
     this.strokes = [];
+    this.strokeIds.clear();
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
