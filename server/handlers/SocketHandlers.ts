@@ -143,8 +143,8 @@ export function setupSocketHandlers(
       try {
         sessionStore.addStroke(currentSession, stroke);
 
-        // Broadcast to all clients in session (including sender)
-        io.to(currentSession).emit(MessageTypes.STROKE_BROADCAST, stroke);
+        // Broadcast to other clients in session (exclude sender)
+        socket.to(currentSession).emit(MessageTypes.STROKE_BROADCAST, stroke);
 
         // Execute stroke:after hooks (logging, webhooks)
         await middleware.execute('stroke:after', context);
