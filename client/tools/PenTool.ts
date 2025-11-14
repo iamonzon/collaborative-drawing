@@ -69,8 +69,12 @@ class PenTool extends BaseTool {
   onMouseUp(point: Point, context: DrawContext): void {
     if (!this.currentStroke) return;
 
-    // Add final point
-    this.currentStroke.points.push(point);
+    // Add final point only if it's different from the last point
+    const points = this.currentStroke.points;
+    const lastPoint = points[points.length - 1];
+    if (!lastPoint || lastPoint.x !== point.x || lastPoint.y !== point.y) {
+      this.currentStroke.points.push(point);
+    }
 
     // Emit stroke:complete event
     context.emit('stroke:complete', this.currentStroke);
