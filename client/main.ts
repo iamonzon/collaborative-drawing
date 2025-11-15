@@ -216,6 +216,11 @@ class App {
     // Listen for completed strokes from tools
     this.canvasController.on(ClientEvents.STROKE_COMPLETE, (stroke: Stroke) => {
       console.log('[App] Stroke completed:', stroke.id);
+
+      // Add stroke to local canvas FIRST (so it persists during redraws)
+      this.canvasController.addStroke(stroke);
+
+      // Then send to server
       this.wsClient.sendStroke(stroke);
     });
   }
