@@ -26,6 +26,7 @@ class SessionManager {
    * Create a new session
    */
   async createSession(sessionId: string | null = null): Promise<string> {
+    this.canvasController.clear();
     const response = await this.wsClient.createSession(sessionId);
     this.currentSessionId = response.sessionId || null;
 
@@ -43,6 +44,7 @@ class SessionManager {
    * Join an existing session
    */
   async joinSession(sessionId: string): Promise<void> {
+    this.canvasController.clear();
     const response = await this.wsClient.joinSession(sessionId);
     this.currentSessionId = sessionId;
 
