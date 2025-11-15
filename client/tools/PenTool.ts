@@ -6,7 +6,7 @@
  */
 
 import BaseTool, { DrawContext } from './BaseTool.js';
-import { Point, Stroke } from '../../shared/types.js';
+import { Point, Stroke, ClientEvents } from '../../shared/types.js';
 
 class PenTool extends BaseTool {
   private color: string = '#000000';
@@ -77,7 +77,7 @@ class PenTool extends BaseTool {
     }
 
     // Emit stroke:complete event
-    context.emit('stroke:complete', this.currentStroke);
+    context.emit(ClientEvents.STROKE_COMPLETE, this.currentStroke);
 
     // Clear current stroke
     this.currentStroke = null;

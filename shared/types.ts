@@ -4,7 +4,8 @@
  */
 
 /**
- * Message types for client-server communication
+ * Socket.io message types for client-server communication
+ * Use these constants for all socket.emit() and socket.on() calls
  */
 export const MessageTypes = {
   // Client -> Server
@@ -24,6 +25,35 @@ export const MessageTypes = {
 } as const;
 
 export type MessageType = typeof MessageTypes[keyof typeof MessageTypes];
+
+/**
+ * Client-side EventEmitter events
+ * Use these for internal application events (wsClient.emit/on, canvasController.emit/on)
+ */
+export const ClientEvents = {
+  // WebSocketClient internal events
+  STROKE: 'stroke',              // Stroke received from server
+  USER_JOINED: 'user_joined',    // User joined session
+  USER_LEFT: 'user_left',        // User left session
+  ERROR: 'error',                // Error from server
+  STATE_CHANGE: 'state_change',  // Connection state changed
+
+  // Tool events (from canvas tools)
+  STROKE_COMPLETE: 'stroke:complete'  // Tool finished drawing stroke
+} as const;
+
+export type ClientEvent = typeof ClientEvents[keyof typeof ClientEvents];
+
+/**
+ * Socket.io native events (for reference only - use as strings)
+ * These are built into socket.io and should NOT be replaced with constants
+ */
+export const SocketNativeEvents = {
+  CONNECT: 'connect',
+  DISCONNECT: 'disconnect',
+  CONNECT_ERROR: 'connect_error',
+  CONNECTION: 'connection'
+} as const;
 
 /**
  * Connection states for client

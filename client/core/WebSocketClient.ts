@@ -9,6 +9,7 @@
 
 import {
   MessageTypes,
+  ClientEvents,
   ConnectionStates,
   ConnectionState,
   Stroke,
@@ -78,20 +79,20 @@ class WebSocketClient {
     // Message handlers
     this.socket.on(MessageTypes.STROKE_BROADCAST, (data: Stroke) => {
       this.lastKnownTimestamp = data.serverTimestamp || Date.now();
-      this.emit('stroke', data);
+      this.emit(ClientEvents.STROKE, data);
     });
 
     this.socket.on(MessageTypes.USER_JOINED, (data: UserJoinedMessage) => {
-      this.emit('user_joined', data);
+      this.emit(ClientEvents.USER_JOINED, data);
     });
 
     this.socket.on(MessageTypes.USER_LEFT, (data: UserLeftMessage) => {
-      this.emit('user_left', data);
+      this.emit(ClientEvents.USER_LEFT, data);
     });
 
     this.socket.on(MessageTypes.ERROR, (data: ErrorMessage) => {
       console.error('[WebSocketClient] Server error:', data.error);
-      this.emit('error', data);
+      this.emit(ClientEvents.ERROR, data);
     });
   }
 
@@ -194,7 +195,7 @@ class WebSocketClient {
       const missedStrokes = await this.requestSync();
       if (missedStrokes.length > 0) {
         console.log(`[WebSocketClient] Received ${missedStrokes.length} missed strokes`);
-        missedStrokes.forEach(stroke => this.emit('stroke', stroke));
+        missedStrokes.forEach(stroke => this.emit(ClientEvents.STROKE, stroke));
       }
 
       // Send queued strokes
@@ -239,7 +240,7 @@ class WebSocketClient {
   private setState(newState: ConnectionState): void {
     const oldState = this.state;
     this.state = newState;
-    this.emit('state_change', { oldState, newState });
+    this.emit(ClientEvents.STATE_CHANGE, { oldState, newState });
   }
 
   /**

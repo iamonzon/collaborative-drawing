@@ -15,7 +15,7 @@ import UIController, { UICallbacks } from './core/UIController.js';
 import SessionManager from './core/SessionManager.js';
 import PenTool from './tools/PenTool.js';
 import EraserTool from './tools/EraserTool.js';
-import { Stroke } from '../shared/types.js';
+import { ClientEvents, Stroke } from '../shared/types.js';
 
 class App {
   private toolRegistry: ToolRegistry;
@@ -183,27 +183,27 @@ class App {
    */
   private setupWebSocketHandlers(): void {
     // Connection state changes
-    this.wsClient.on('state_change', ({ newState }) => {
+    this.wsClient.on(ClientEvents.STATE_CHANGE, ({ newState }) => {
       this.uiController.updateConnectionStatus(newState);
     });
 
     // Incoming strokes
-    this.wsClient.on('stroke', (stroke: Stroke) => {
+    this.wsClient.on(ClientEvents.STROKE, (stroke: Stroke) => {
       console.log('[App] Received stroke from server:', stroke.id);
       this.canvasController.addStroke(stroke);
     });
 
     // User events
-    this.wsClient.on('user_joined', ({ userId }) => {
+    this.wsClient.on(ClientEvents.USER_JOINED, ({ userId }) => {
       console.log('[App] User joined:', userId);
     });
 
-    this.wsClient.on('user_left', ({ userId }) => {
+    this.wsClient.on(ClientEvents.USER_LEFT, ({ userId }) => {
       console.log('[App] User left:', userId);
     });
 
     // Errors
-    this.wsClient.on('error', ({ error }) => {
+    this.wsClient.on(ClientEvents.ERROR, ({ error }) => {
       console.error('[App] Server error:', error);
       this.uiController.showError(error);
     });
@@ -214,7 +214,7 @@ class App {
    */
   private setupCanvasHandlers(): void {
     // Listen for completed strokes from tools
-    this.canvasController.on('stroke:complete', (stroke: Stroke) => {
+    this.canvasController.on(ClientEvents.STROKE_COMPLETE, (stroke: Stroke) => {
       console.log('[App] Stroke completed:', stroke.id);
       this.wsClient.sendStroke(stroke);
     });
