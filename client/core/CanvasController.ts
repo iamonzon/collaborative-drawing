@@ -209,11 +209,11 @@ class CanvasController {
       if (existingStroke && stroke.serverTimestamp) {
         existingStroke.serverTimestamp = stroke.serverTimestamp;
 
-        // Re-sort to place stroke in correct position
+        // Re-sort to place stroke in correct position (for future redraws)
         this.sortStrokesByTimestamp();
 
-        // Redraw to show correct ordering
-        this.scheduleRedraw();
+        // No redraw needed - stroke is already visually on canvas
+        // It will be in correct order on next redraw (window resize, remote stroke, etc.)
       }
       return;
     }

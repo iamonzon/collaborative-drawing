@@ -148,7 +148,7 @@ export function setupSocketHandlers(
         // Note: Sender needs serverTimestamp for correct ordering
         io.to(currentSession).emit(MessageTypes.STROKE_BROADCAST, stroke);
 
-        // Execute stroke:after hooks (logging, webhooks)
+        // Execute stroke:after hooks (logging)
         await middleware.execute('stroke:after', context);
       } catch (error) {
         console.error('[Server] Error processing stroke:', error);
@@ -181,6 +181,14 @@ export function setupSocketHandlers(
       if (!session) {
         const errorMsg: ErrorMessage = {
           error: `Invalid session id [${sessionId}] for clear canvas request`
+        };
+        socket.emit(MessageTypes.ERROR, errorMsg);
+        return;
+      }
+
+      if (!session.users.has(userId)) {
+        const errorMsg: ErrorMessage = {
+          error: `User [${userId}] is not in session [${sessionId}]`
         };
         socket.emit(MessageTypes.ERROR, errorMsg);
         return;
