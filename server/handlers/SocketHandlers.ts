@@ -19,7 +19,8 @@ import {
   SessionCreatedResponse,
   SessionJoinedResponse,
   SyncResponse,
-  ErrorMessage
+  ErrorMessage,
+  ClearCanvasMessage
 } from '../../shared/types.js';
 
 export function setupSocketHandlers(
@@ -171,6 +172,25 @@ export function setupSocketHandlers(
 
       console.log(`[Server] Sync request for session ${sessionId}, returned ${strokes.length} strokes`);
     });
+
+    socket.on(MessageTypes.CLEAR_CANVAS, (data: ClearCanvasMessage) => {
+      const { sessionId } = data
+
+      const session = sessionStore.get(sessionId);
+      if (!session) {
+        const errorMsg: ErrorMessage = {
+          error: `Invalid session id [${sessionId}] for clear canvas request`
+        };
+        socket.emit(MessageTypes.ERROR, errorMsg);
+        return;
+      }
+
+      console.log(`[Server] Clear canvas request for session [${sessionId}]`)
+
+      session.strokes = [] // Empty strokes to ensure persistence after refresh
+
+      socket.to(sessionId).emit(MessageTypes.CLEAR_CANVAS_BROADCAST, { sessionId })
+    })
 
     // DISCONNECT
     socket.on('disconnect', () => {

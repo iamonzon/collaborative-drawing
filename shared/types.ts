@@ -13,12 +13,14 @@ export const MessageTypes = {
   JOIN_SESSION: 'join_session',
   STROKE: 'stroke',
   SYNC_REQUEST: 'sync_request',
+  CLEAR_CANVAS: 'clear_canvas',
 
   // Server -> Client
   SESSION_CREATED: 'session_created',
   SESSION_JOINED: 'session_joined',
   STROKE_BROADCAST: 'stroke_broadcast',
   SYNC_RESPONSE: 'sync_response',
+  CLEAR_CANVAS_BROADCAST: 'clear_canvas_broadcast',
   ERROR: 'error',
   USER_JOINED: 'user_joined',
   USER_LEFT: 'user_left'
@@ -27,12 +29,13 @@ export const MessageTypes = {
 export type MessageType = typeof MessageTypes[keyof typeof MessageTypes];
 
 /**
- * Client-side EventEmitter events
+ * Client-side Internal Application Events
  * Use these for internal application events (wsClient.emit/on, canvasController.emit/on)
  */
 export const ClientEvents = {
   // WebSocketClient internal events
   STROKE: 'stroke',              // Stroke received from server
+  CLEAR_CANVAS: 'clear_canvas',  // Clear canvas
   USER_JOINED: 'user_joined',    // User joined session
   USER_LEFT: 'user_left',        // User left session
   ERROR: 'error',                // Error from server
@@ -138,6 +141,11 @@ export interface JoinSessionMessage {
 export interface SyncRequestMessage {
   sessionId: string;
   lastKnownTimestamp?: number;
+}
+
+export interface ClearCanvasMessage {
+  sessionId: string;
+  userId?: string
 }
 
 export interface SessionCreatedResponse {

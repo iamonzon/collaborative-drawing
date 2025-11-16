@@ -86,9 +86,22 @@ class App {
       onColorChange: (color: string) => this.handleColorChange(color),
       onCreateSession: (sessionId: string | null) => this.handleCreateSession(sessionId),
       onJoinSession: (sessionId: string) => this.handleJoinSession(sessionId),
-      onClearCanvas: () => this.canvasController.clear(),
+      onClearCanvas: () => this.clearCanvas(),
       onShareLink: () => this.handleShareLink()
     };
+  }
+
+  /**
+   * Broadcast clear canvas
+   */
+  private clearCanvas(): void {
+    const sessionId = this.sessionManager.getCurrentSessionId()
+    if (!sessionId){
+      console.log('[App] Undefined session id for clear canvas')
+      return;
+    }
+    this.canvasController.clear()
+    this.wsClient.clearCanvas(sessionId)
   }
 
   /**
@@ -101,6 +114,7 @@ class App {
     }
 
     this.toolRegistry.use(toolName);
+    if (this.currentTool === toolName) { return; } // Tool is already active, do nothing
     this.currentTool = toolName;
     this.uiController.setActiveTool(toolName);
 
@@ -192,6 +206,11 @@ class App {
       console.log('[App] Received stroke from server:', stroke.id);
       this.canvasController.addStroke(stroke);
     });
+
+    // Clear canvas
+    this.wsClient.on(ClientEvents.CLEAR_CANVAS, ({sessionId}) => {
+      this.canvasController.clear()
+    })
 
     // User events
     this.wsClient.on(ClientEvents.USER_JOINED, ({ userId }) => {

@@ -18,7 +18,8 @@ import {
   SyncResponse,
   UserJoinedMessage,
   UserLeftMessage,
-  ErrorMessage
+  ErrorMessage,
+  ClearCanvasMessage
 } from '../../shared/types.js';
 
 // Socket.io client types (loaded from CDN)
@@ -81,6 +82,11 @@ class WebSocketClient {
       this.lastKnownTimestamp = data.serverTimestamp || Date.now();
       this.emit(ClientEvents.STROKE, data);
     });
+
+    this.socket.on(MessageTypes.CLEAR_CANVAS_BROADCAST, (data: ClearCanvasMessage) => {
+      console.log(`[WebSocketClient] Clear canvas broadcast received for [${data.sessionId}]`)
+      this.emit(ClientEvents.CLEAR_CANVAS, (data))
+    })
 
     this.socket.on(MessageTypes.USER_JOINED, (data: UserJoinedMessage) => {
       this.emit(ClientEvents.USER_JOINED, data);
@@ -147,6 +153,10 @@ class WebSocketClient {
     }
 
     this.socket.emit(MessageTypes.STROKE, stroke);
+  }
+
+  clearCanvas(sessionId: string): void {
+    this.socket.emit(MessageTypes.CLEAR_CANVAS, { sessionId })
   }
 
   /**
