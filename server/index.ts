@@ -95,10 +95,27 @@ async function loadPlugins(middleware: MiddlewareManager, pluginConfig: any[]): 
 }
 
 /**
- * Generate random session ID
+ * Generate unique random session ID
+ * Retries if collision detected
  */
 function generateSessionId(): string {
-  return Math.random().toString(36).substring(2, 10);
+  const maxAttempts = 10;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const id = Math.random().toString(36).substring(2, 10);
+
+    // Check if ID is unique
+    if (!sessionStore.exists(id)) {
+      return id;
+    }
+
+    console.warn(`[Server] Session ID collision detected: ${id}, retrying... (attempt ${attempt + 1}/${maxAttempts})`);
+  }
+
+  // Fallback: add timestamp to ensure uniqueness
+  const id = Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
+  console.warn(`[Server] Using timestamped session ID: ${id}`);
+  return id;
 }
 
 /**

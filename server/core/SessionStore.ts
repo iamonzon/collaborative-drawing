@@ -18,8 +18,14 @@ class SessionStore {
    * Create a new session
    * @param sessionId - Unique session identifier
    * @returns Created session
+   * @throws Error if session already exists
    */
   create(sessionId: string): Session {
+    // Check if session already exists
+    if (this.sessions.has(sessionId)) {
+      throw new Error(`Session already exists: ${sessionId}`);
+    }
+
     const session: Session = {
       id: sessionId,
       strokes: [],
@@ -30,6 +36,15 @@ class SessionStore {
     this.sessions.set(sessionId, session);
     console.log(`[SessionStore] Created session: ${sessionId}`);
     return session;
+  }
+
+  /**
+   * Check if a session exists
+   * @param sessionId - Session identifier
+   * @returns True if session exists
+   */
+  exists(sessionId: string): boolean {
+    return this.sessions.has(sessionId);
   }
 
   /**
