@@ -144,8 +144,9 @@ export function setupSocketHandlers(
       try {
         sessionStore.addStroke(currentSession, stroke);
 
-        // Broadcast to other clients in session (exclude sender)
-        socket.to(currentSession).emit(MessageTypes.STROKE_BROADCAST, stroke);
+        // Broadcast to ALL clients in session (including sender for timestamp sync)
+        // Note: Sender needs serverTimestamp for correct ordering
+        io.to(currentSession).emit(MessageTypes.STROKE_BROADCAST, stroke);
 
         // Execute stroke:after hooks (logging, webhooks)
         await middleware.execute('stroke:after', context);

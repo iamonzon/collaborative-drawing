@@ -188,11 +188,37 @@ class CanvasController {
   }
 
   /**
-   * Add a stroke from remote user and render it
+   * Add a stroke to history without redrawing (for local strokes already on canvas)
    */
-  addStroke(stroke: Stroke): void {
+  addStrokeToHistory(stroke: Stroke): void {
     // Deduplicate strokes by ID (O(1) lookup)
     if (this.strokeIds.has(stroke.id)) {
+      return;
+    }
+
+    this.strokes.push(stroke);
+    this.strokeIds.add(stroke.id);
+
+    // Note: No redraw - stroke is already visually on canvas
+  }
+
+  /**
+   * Add a remote stroke and render it
+   */
+  addStroke(stroke: Stroke): void {
+    // Check if stroke already exists (local stroke receiving serverTimestamp)
+    if (this.strokeIds.has(stroke.id)) {
+      // Update existing stroke with serverTimestamp (sender receiving their own stroke back)
+      const existingStroke = this.strokes.find(s => s.id === stroke.id);
+      if (existingStroke && stroke.serverTimestamp) {
+        existingStroke.serverTimestamp = stroke.serverTimestamp;
+
+        // Re-sort to place stroke in correct position
+        this.strokes.sort((a, b) => (a.serverTimestamp || 0) - (b.serverTimestamp || 0));
+
+        // Redraw to show correct ordering
+        this.scheduleRedraw();
+      }
       return;
     }
 
