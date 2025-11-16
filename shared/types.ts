@@ -145,7 +145,6 @@ export interface SyncRequestMessage {
 
 export interface ClearCanvasMessage {
   sessionId: string;
-  userId?: string
 }
 
 export interface SessionCreatedResponse {

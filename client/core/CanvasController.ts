@@ -15,9 +15,8 @@ class CanvasController {
   private ctx: CanvasRenderingContext2D;
   private toolRegistry: ToolRegistry;
   private isDrawing: boolean;
-  private strokes: Stroke[]; // All strokes in the session
-  private strokeIds: Set<string>; // For O(1) deduplication
-  private currentStroke: Stroke | null;
+  private strokes: Stroke[]; // All strokes in the session (for sorted iteration)
+  private strokeMap: Map<string, Stroke>; // For O(1) lookup by ID
   private pendingRedraw: boolean;
 
   constructor(canvas: HTMLCanvasElement, toolRegistry: ToolRegistry) {
@@ -30,8 +29,7 @@ class CanvasController {
     this.toolRegistry = toolRegistry;
     this.isDrawing = false;
     this.strokes = [];
-    this.strokeIds = new Set();
-    this.currentStroke = null;
+    this.strokeMap = new Map();
     this.pendingRedraw = false;
 
     // Set up canvas
@@ -133,7 +131,6 @@ class CanvasController {
     };
 
     tool.onMouseDown(point, context);
-    this.currentStroke = tool.getCurrentStroke();
   }
 
   /**
@@ -175,7 +172,6 @@ class CanvasController {
     };
 
     tool.onMouseUp(point, context);
-    this.currentStroke = null;
   }
 
   /**
@@ -192,12 +188,12 @@ class CanvasController {
    */
   addStrokeToHistory(stroke: Stroke): void {
     // Deduplicate strokes by ID (O(1) lookup)
-    if (this.strokeIds.has(stroke.id)) {
+    if (this.strokeMap.has(stroke.id)) {
       return;
     }
 
     this.strokes.push(stroke);
-    this.strokeIds.add(stroke.id);
+    this.strokeMap.set(stroke.id, stroke);
 
     // Note: No redraw - stroke is already visually on canvas
   }
@@ -207,14 +203,14 @@ class CanvasController {
    */
   addStroke(stroke: Stroke): void {
     // Check if stroke already exists (local stroke receiving serverTimestamp)
-    if (this.strokeIds.has(stroke.id)) {
-      // Update existing stroke with serverTimestamp (sender receiving their own stroke back)
-      const existingStroke = this.strokes.find(s => s.id === stroke.id);
+    if (this.strokeMap.has(stroke.id)) {
+      // Update existing stroke with serverTimestamp (O(1) lookup via Map!)
+      const existingStroke = this.strokeMap.get(stroke.id);
       if (existingStroke && stroke.serverTimestamp) {
         existingStroke.serverTimestamp = stroke.serverTimestamp;
 
         // Re-sort to place stroke in correct position
-        this.strokes.sort((a, b) => (a.serverTimestamp || 0) - (b.serverTimestamp || 0));
+        this.sortStrokesByTimestamp();
 
         // Redraw to show correct ordering
         this.scheduleRedraw();
@@ -223,10 +219,10 @@ class CanvasController {
     }
 
     this.strokes.push(stroke);
-    this.strokeIds.add(stroke.id);
+    this.strokeMap.set(stroke.id, stroke);
 
     // Sort by server timestamp for correct ordering
-    this.strokes.sort((a, b) => (a.serverTimestamp || 0) - (b.serverTimestamp || 0));
+    this.sortStrokesByTimestamp();
 
     // Schedule redraw (batched via requestAnimationFrame)
     this.scheduleRedraw();
@@ -240,22 +236,29 @@ class CanvasController {
 
     for (const stroke of strokes) {
       // Deduplicate strokes by ID (O(1) lookup)
-      if (this.strokeIds.has(stroke.id)) {
+      if (this.strokeMap.has(stroke.id)) {
         continue;
       }
 
       this.strokes.push(stroke);
-      this.strokeIds.add(stroke.id);
+      this.strokeMap.set(stroke.id, stroke);
       added = true;
     }
 
     if (added) {
       // Sort by server timestamp for correct ordering
-      this.strokes.sort((a, b) => (a.serverTimestamp || 0) - (b.serverTimestamp || 0));
+      this.sortStrokesByTimestamp();
 
       // Schedule single redraw for all strokes
       this.scheduleRedraw();
     }
+  }
+
+  /**
+   * Sort strokes by server timestamp (for correct rendering order)
+   */
+  private sortStrokesByTimestamp(): void {
+    this.strokes.sort((a, b) => (a.serverTimestamp || 0) - (b.serverTimestamp || 0));
   }
 
   /**
@@ -297,7 +300,7 @@ class CanvasController {
    */
   clear(): void {
     this.strokes = [];
-    this.strokeIds.clear();
+    this.strokeMap.clear();
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
@@ -319,12 +322,6 @@ class CanvasController {
     });
   }
 
-  /**
-   * Cleanup
-   */
-  destroy(): void {
-    window.removeEventListener('resize', () => this.resizeCanvas());
-  }
 }
 
 export default CanvasController;

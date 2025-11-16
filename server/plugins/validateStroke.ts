@@ -5,71 +5,71 @@
  * Purpose: Validate stroke data before broadcasting
  */
 
-import { MiddlewarePlugin } from '../../shared/types.js';
+import { MiddlewarePlugin, MiddlewareContext } from '../../shared/types.js';
+
+// Validation constraints
+const CONSTRAINTS = {
+  MIN_POINTS: 2,
+  MIN_LINE_WIDTH: 1,
+  MAX_LINE_WIDTH: 50,
+  MIN_COORDINATE: 0,
+  MAX_COORDINATE: 10000,
+  COLOR_REGEX: /^#[0-9A-Fa-f]{6}$/
+} as const;
+
+/**
+ * Helper to fail validation with error message
+ */
+function fail(context: MiddlewareContext, error: string): void {
+  context.stopped = true;
+  context.error = error;
+}
 
 const validateStroke: MiddlewarePlugin = (context) => {
   const { stroke } = context;
 
+  // Check stroke exists
   if (!stroke) {
-    context.stopped = true;
-    context.error = 'No stroke provided';
-    return;
+    return fail(context, 'No stroke provided');
   }
 
-  // Check if stroke has required fields
+  // Validate required fields
   if (!stroke.id) {
-    context.stopped = true;
-    context.error = 'Stroke missing ID';
-    return;
+    return fail(context, 'Stroke missing ID');
   }
 
   if (!stroke.tool) {
-    context.stopped = true;
-    context.error = 'Stroke missing tool type';
-    return;
+    return fail(context, 'Stroke missing tool type');
   }
 
   if (!stroke.points || !Array.isArray(stroke.points)) {
-    context.stopped = true;
-    context.error = 'Stroke missing points array';
-    return;
+    return fail(context, 'Stroke missing points array');
   }
 
-  // Validate minimum points (need at least 2 points for a stroke)
-  if (stroke.points.length < 2) {
-    context.stopped = true;
-    context.error = 'Stroke must have at least 2 points';
-    return;
+  // Validate minimum points
+  if (stroke.points.length < CONSTRAINTS.MIN_POINTS) {
+    return fail(context, `Stroke must have at least ${CONSTRAINTS.MIN_POINTS} points`);
   }
 
-  // Validate point structure
+  // Validate each point
   for (const point of stroke.points) {
     if (typeof point.x !== 'number' || typeof point.y !== 'number') {
-      context.stopped = true;
-      context.error = 'Invalid point format';
-      return;
+      return fail(context, 'Invalid point format');
     }
 
-    // Validate point is within reasonable canvas bounds (0-10000)
-    if (point.x < 0 || point.x > 10000 || point.y < 0 || point.y > 10000) {
-      context.stopped = true;
-      context.error = 'Point coordinates out of bounds';
-      return;
+    if (point.x < CONSTRAINTS.MIN_COORDINATE || point.x > CONSTRAINTS.MAX_COORDINATE ||
+        point.y < CONSTRAINTS.MIN_COORDINATE || point.y > CONSTRAINTS.MAX_COORDINATE) {
+      return fail(context, `Point coordinates must be between ${CONSTRAINTS.MIN_COORDINATE} and ${CONSTRAINTS.MAX_COORDINATE}`);
     }
   }
 
-  // Validate color if present
-  if (stroke.color && !/^#[0-9A-Fa-f]{6}$/.test(stroke.color)) {
-    context.stopped = true;
-    context.error = 'Invalid color format (must be hex: #RRGGBB)';
-    return;
+  // Validate optional fields
+  if (stroke.color && !CONSTRAINTS.COLOR_REGEX.test(stroke.color)) {
+    return fail(context, 'Invalid color format (must be hex: #RRGGBB)');
   }
 
-  // Validate line width
-  if (stroke.lineWidth && (stroke.lineWidth < 1 || stroke.lineWidth > 50)) {
-    context.stopped = true;
-    context.error = 'Line width must be between 1 and 50';
-    return;
+  if (stroke.lineWidth && (stroke.lineWidth < CONSTRAINTS.MIN_LINE_WIDTH || stroke.lineWidth > CONSTRAINTS.MAX_LINE_WIDTH)) {
+    return fail(context, `Line width must be between ${CONSTRAINTS.MIN_LINE_WIDTH} and ${CONSTRAINTS.MAX_LINE_WIDTH}`);
   }
 
   // Validation passed

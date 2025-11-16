@@ -45,14 +45,6 @@ abstract class BaseTool {
   abstract render(ctx: CanvasRenderingContext2D, stroke: Stroke): void;
 
   /**
-   * Get the current stroke being drawn
-   * @returns Current stroke
-   */
-  getCurrentStroke(): Stroke | null {
-    return this.currentStroke;
-  }
-
-  /**
    * Generate a unique ID for a stroke
    * @returns UUID
    */

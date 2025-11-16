@@ -77,15 +77,6 @@ class MiddlewareManager {
     return this.hooks[hook]?.length || 0;
   }
 
-  /**
-   * Clear all plugins from a hook (useful for testing)
-   * @param hook - Hook name
-   */
-  clear(hook: HookName): void {
-    if (this.hooks[hook]) {
-      this.hooks[hook] = [];
-    }
-  }
 }
 
 export default MiddlewareManager;
