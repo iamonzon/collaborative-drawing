@@ -243,6 +243,77 @@ this.toolRegistry.register('rectangle', RectangleTool);
 
 ---
 
+## 🚀 Deployment
+
+### Deploy to Railway (Recommended)
+
+**Time: 5 minutes**
+
+Railway provides free hosting with full WebSocket support - perfect for this real-time collaborative app.
+
+#### Option 1: CLI (Fastest)
+
+```bash
+# Install Railway CLI
+npm i -g @railway/cli
+
+# Login (opens browser)
+railway login
+
+# Initialize project
+railway init
+
+# Deploy
+railway up
+
+# Generate public URL
+railway domain
+```
+
+You'll get a URL like: `https://collaborative-paint.up.railway.app`
+
+#### Option 2: Web Dashboard (No CLI)
+
+1. Go to [railway.app/new](https://railway.app/new)
+2. Click "Deploy from GitHub repo"
+3. Connect your GitHub account and select this repository
+4. Railway auto-detects `railway.json` configuration
+5. Click "Deploy"
+6. Go to Settings → "Generate Domain"
+7. Done! Your app is live 🎉
+
+#### Configuration
+
+Railway uses `railway.json`:
+```json
+{
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "npm install && npm run build"
+  },
+  "deploy": {
+    "startCommand": "npm start"
+  }
+}
+```
+
+Nixpacks automatically:
+- Detects Node.js from `package.json`
+- Installs dependencies (including TypeScript)
+- Builds the application
+- Starts the server
+
+#### Verify Deployment
+
+After deploying, test:
+1. ✅ Create a session
+2. ✅ Share session link
+3. ✅ Open link in another browser/incognito window
+4. ✅ Draw in both windows simultaneously
+5. ✅ Verify real-time sync works
+
+---
+
 ## 📄 License
 
 ISC
