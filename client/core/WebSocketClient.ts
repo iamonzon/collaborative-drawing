@@ -79,6 +79,11 @@ class WebSocketClient {
 
     // Message handlers
     this.socket.on(MessageTypes.STROKE_BROADCAST, (data: Stroke) => {
+      console.log(`[WebSocketClient] Stroke broadcast received for
+        id [${data.id}]
+        from user [${data.userId}]
+        tool [${data.tool}]
+        server timestamp [${data.serverTimestamp}]`);
       this.lastKnownTimestamp = data.serverTimestamp || Date.now();
       this.emit(ClientEvents.STROKE, data);
     });
@@ -199,18 +204,18 @@ class WebSocketClient {
     // Rejoin session
     try {
       const response = await this.joinSession(this.currentSession);
-      console.log('[WebSocketClient] Rejoined session');
+      console.log(`[WebSocketClient] Rejoined session [${this.currentSession}]`);
 
       // Request sync for missed strokes
       const missedStrokes = await this.requestSync();
       if (missedStrokes.length > 0) {
-        console.log(`[WebSocketClient] Received ${missedStrokes.length} missed strokes`);
+        console.log(`[WebSocketClient] Received [${missedStrokes.length}] missed strokes`);
         missedStrokes.forEach(stroke => this.emit(ClientEvents.STROKE, stroke));
       }
 
       // Send queued strokes
       if (this.offlineQueue.length > 0) {
-        console.log(`[WebSocketClient] Sending ${this.offlineQueue.length} queued strokes`);
+        console.log(`[WebSocketClient] Sending [${this.offlineQueue.length}] queued strokes`);
         this.offlineQueue.forEach(stroke => this.sendStroke(stroke));
         this.offlineQueue = [];
       }

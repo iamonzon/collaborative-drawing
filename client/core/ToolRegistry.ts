@@ -59,6 +59,11 @@ class ToolRegistry {
       throw new Error(`Tool not found: ${name}. Available tools: ${this.getToolNames().join(', ')}`);
     }
 
+    if (this.currentTool && this.currentTool.constructor.name === ToolClass.name) {
+      // Tool is already active, just return it
+      return this.currentTool;
+    }
+
     this.currentTool = new ToolClass();
     console.log(`[ToolRegistry] Switched to tool: ${name}`);
     return this.currentTool;
@@ -70,6 +75,19 @@ class ToolRegistry {
    */
   getCurrentTool(): BaseTool | null {
     return this.currentTool;
+  }
+
+  /**
+   * Get a tool instance for rendering (doesn't change current tool)
+   * @param name - Tool name
+   * @returns New tool instance
+   */
+  getToolForRendering(name: string): BaseTool {
+    const ToolClass = this.tools.get(name);
+    if (!ToolClass) {
+      throw new Error(`Tool not found: ${name}. Available tools: ${this.getToolNames().join(', ')}`);
+    }
+    return new ToolClass();
   }
 
   /**

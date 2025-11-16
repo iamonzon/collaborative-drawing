@@ -259,12 +259,9 @@ class CanvasController {
       // Get the tool that created this stroke
       const toolName = stroke.tool;
       if (this.toolRegistry.hasTool(toolName)) {
-        // Create a temporary instance to render
-        const tool = this.toolRegistry.use(toolName);
+        // Get a temporary tool instance for rendering (doesn't affect current active tool)
+        const tool = this.toolRegistry.getToolForRendering(toolName);
         tool.render(this.ctx, stroke);
-
-        // Restore the current tool
-        // Note: This is a simplification; in production you'd want better tool state management
       }
     }
   }
