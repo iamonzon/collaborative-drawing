@@ -59,6 +59,7 @@ const validateStroke: MiddlewarePlugin = (context) => {
 
     if (point.x < CONSTRAINTS.MIN_COORDINATE || point.x > CONSTRAINTS.MAX_COORDINATE ||
         point.y < CONSTRAINTS.MIN_COORDINATE || point.y > CONSTRAINTS.MAX_COORDINATE) {
+      console.warn(`[ValidatePlugin] Point coordinates out of bounds: ${point.x}, ${point.y}`);
       return fail(context, `Point coordinates must be between ${CONSTRAINTS.MIN_COORDINATE} and ${CONSTRAINTS.MAX_COORDINATE}`);
     }
   }

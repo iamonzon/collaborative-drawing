@@ -18,6 +18,7 @@ class CanvasController {
   private strokes: Stroke[]; // All strokes in the session (for sorted iteration)
   private strokeMap: Map<string, Stroke>; // For O(1) lookup by ID
   private pendingRedraw: boolean;
+  private lastTouchPosition: { clientX: number; clientY: number } | null = null;
 
   constructor(canvas: HTMLCanvasElement, toolRegistry: ToolRegistry) {
     this.canvas = canvas;
@@ -75,6 +76,7 @@ class CanvasController {
     this.canvas.addEventListener('touchstart', (e) => {
       e.preventDefault();
       const touch = e.touches[0];
+      this.lastTouchPosition = { clientX: touch.clientX, clientY: touch.clientY };
       const mouseEvent = new MouseEvent('mousedown', {
         clientX: touch.clientX,
         clientY: touch.clientY
@@ -85,6 +87,7 @@ class CanvasController {
     this.canvas.addEventListener('touchmove', (e) => {
       e.preventDefault();
       const touch = e.touches[0];
+      this.lastTouchPosition = { clientX: touch.clientX, clientY: touch.clientY };
       const mouseEvent = new MouseEvent('mousemove', {
         clientX: touch.clientX,
         clientY: touch.clientY
@@ -94,8 +97,13 @@ class CanvasController {
 
     this.canvas.addEventListener('touchend', (e) => {
       e.preventDefault();
-      const mouseEvent = new MouseEvent('mouseup', {});
+      // Use last known touch position for touchend
+      const mouseEvent = new MouseEvent('mouseup', {
+        clientX: this.lastTouchPosition?.clientX || 0,
+        clientY: this.lastTouchPosition?.clientY || 0
+      });
       this.canvas.dispatchEvent(mouseEvent);
+      this.lastTouchPosition = null;
     });
   }
 
