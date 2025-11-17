@@ -17,24 +17,28 @@ class SessionStore {
   /**
    * Create a new session
    * @param sessionId - Unique session identifier
+   * @param createdBy - User ID of session creator
    * @returns Created session
    * @throws Error if session already exists
    */
-  create(sessionId: string): Session {
+  create(sessionId: string, createdBy?: string): Session {
     // Check if session already exists
     if (this.sessions.has(sessionId)) {
       throw new Error(`Session already exists: ${sessionId}`);
     }
 
+    const now = Date.now();
     const session: Session = {
       id: sessionId,
       strokes: [],
       users: new Set<string>(),
-      createdAt: Date.now()
+      createdAt: now,
+      createdBy,
+      lastActivity: now
     };
 
     this.sessions.set(sessionId, session);
-    console.log(`[SessionStore] Created session: ${sessionId}`);
+    console.log(`[SessionStore] Created session: ${sessionId} by ${createdBy || 'unknown'}`);
     return session;
   }
 
@@ -68,8 +72,10 @@ class SessionStore {
     }
 
     // Add server timestamp for authoritative ordering
-    stroke.serverTimestamp = Date.now();
+    const now = Date.now();
+    stroke.serverTimestamp = now;
     session.strokes.push(stroke);
+    session.lastActivity = now;  // Update last activity
 
     console.log(`[SessionStore] Added stroke to session ${sessionId}, total: ${session.strokes.length}`);
   }
@@ -141,6 +147,22 @@ class SessionStore {
    */
   getSessionCount(): number {
     return this.sessions.size;
+  }
+
+  /**
+   * Get all sessions with metadata
+   * @returns Array of session details
+   */
+  getAllSessionDetails() {
+    return Array.from(this.sessions.values()).map(session => ({
+      id: session.id,
+      created_by: session.createdBy || 'unknown',
+      created_at: new Date(session.createdAt).toISOString(),
+      last_activity: session.lastActivity ? new Date(session.lastActivity).toISOString() : null,
+      stroke_count: session.strokes.length,
+      user_count: session.users.size,
+      active_users: Array.from(session.users)
+    }));
   }
 }
 

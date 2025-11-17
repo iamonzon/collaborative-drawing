@@ -68,6 +68,23 @@ export function setupRoutes(
     });
   });
 
+  // Sessions monitoring endpoint
+  app.get('/sessions', (req, res) => {
+    const sessions = sessionStore.getAllSessionDetails();
+
+    // Sort by last activity (most recent first)
+    sessions.sort((a, b) => {
+      const timeA = a.last_activity ? new Date(a.last_activity).getTime() : 0;
+      const timeB = b.last_activity ? new Date(b.last_activity).getTime() : 0;
+      return timeB - timeA;
+    });
+
+    res.json({
+      total: sessions.length,
+      sessions
+    });
+  });
+
   // Serve index.html for root and session routes
   app.get('/', (req, res) => {
     res.sendFile(path.join(dirname, levelsUp, 'client/index.html'));

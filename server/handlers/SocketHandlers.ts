@@ -40,7 +40,7 @@ export function setupSocketHandlers(
       const sessionId = data.sessionId || generateSessionId();
 
       try {
-        const session = sessionStore.create(sessionId);
+        const session = sessionStore.create(sessionId, userId);
 
         // Execute session:create hooks
         const context = {

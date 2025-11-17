@@ -100,6 +100,8 @@ export interface Session {
   strokes: Stroke[];
   users: Set<string>;
   createdAt: number;
+  createdBy?: string;
+  lastActivity?: number;
 }
 
 /**
