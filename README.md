@@ -238,8 +238,9 @@ this.toolRegistry.register('rectangle', RectangleTool);
 - ❌ Cursor tracking
 - ❌ Authentication
 - ❌ Persistent storage
+- ❌ Automated tests
 
-**Reason:** Every feature should demonstrate plugin architecture or core collaboration. Nothing else.
+**Reason:** This is an architectural demonstration focused on plugin systems and real-time collaboration patterns. For production deployment, automated tests would be the first priority (unit tests for middleware execution, integration tests for WebSocket flows, E2E tests for multi-user scenarios).
 
 ---
 

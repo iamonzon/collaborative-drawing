@@ -11,6 +11,26 @@ import path from 'path';
 import MiddlewareManager from './core/MiddlewareManager.js';
 import SessionStore from './core/SessionStore.js';
 
+/**
+ * Format uptime in human-readable format
+ * @param seconds - Uptime in seconds
+ * @returns Human-readable string (e.g., "2h 15m 30s")
+ */
+function formatUptime(seconds: number): string {
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
+
+  const parts: string[] = [];
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0) parts.push(`${minutes}m`);
+  if (secs > 0 || parts.length === 0) parts.push(`${secs}s`);
+
+  return parts.join(' ');
+}
+
 export function setupRoutes(
   app: Application,
   middleware: MiddlewareManager,
@@ -28,8 +48,16 @@ export function setupRoutes(
 
   // Health check endpoint
   app.get('/health', (req, res) => {
+    const now = new Date();
+    const uptimeSeconds = process.uptime();
+    const startTime = new Date(now.getTime() - uptimeSeconds * 1000);
+
     res.json({
       status: 'ok',
+      start_time: startTime.toISOString(),
+      current_time: now.toISOString(),
+      uptime_seconds: Math.floor(uptimeSeconds),
+      uptime_human: formatUptime(uptimeSeconds),
       sessions: sessionStore.getSessionCount(),
       plugins: {
         'stroke:before': middleware.getPluginCount('stroke:before'),
